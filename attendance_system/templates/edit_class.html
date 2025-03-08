@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Class</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card p-4 shadow-lg" style="width: 350px;">
+        <h3 class="text-center">Edit Class</h3>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="name" class="form-label">Class Name:</label>
+                <input type="text" id="name" name="name" value="{{ class_[1] }}" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="department_id" class="form-label">Department:</label>
+                <select id="department_id" name="department_id" class="form-select" required>
+                    {% for department in departments %}
+                    <option value="{{ department[0] }}" {% if department[0] == class_[2] %}selected{% endif %}>
+                        {{ department[1] }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Update</button>
+        </form>
+        <p class="text-center mt-3">Go back to <a href="{{ url_for('manage_classes') }}">Class List</a>.</p>
+    </div>
+</body>
+</html>
