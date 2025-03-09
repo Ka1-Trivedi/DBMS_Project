@@ -1,0 +1,5 @@
+-- database: ./attendance.db
+
+-- Use the ▷ button in the top right corner to run the entire file.
+
+INSERT INTO users (email,password,role) VALUES ('kavanmtrivedicomp@gmail.com','$2b$12$G9jZ8snHv.efykiajyPEtelXxobuywRCuPR8HUz98/6Qo3Grhb.7e','admin');
