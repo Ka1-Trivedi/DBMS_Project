@@ -1,0 +1,4 @@
+checked till manage teachers; 
+1,kavanmtrivedicomp@gmail.com,$2b$12$G9jZ8snHv.efykiajyPEtelXxobuywRCuPR8HUz98/6Qo3Grhb.7e,admin
+2,hitshethgnr@gmail.com,$2b$12$Jzy0T7lCKj9qvkBkbJcMvu1Rn50nIOm4e2luA4dUnMlswYTpnbiEK,teacher
+3,admin@gmail.com,$2b$12$LRkjZX2MHil5J9aOk6eChu50EuY/Tz5GaN40UYcrBqSFf9W.qG4ju,admin

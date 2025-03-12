@@ -65,7 +65,10 @@ def create_tables():
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     email TEXT UNIQUE NOT NULL,
-                    password TEXT NOT NULL 
+                    password TEXT NOT NULL,
+                    user_id INTEGER,
+                    subject TEXT,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
                    )
     '''
     )
@@ -79,7 +82,9 @@ def create_tables():
                     password TEXT NOT NULL,
                     roll_number TEXT UNIQUE NOT NULL,
                     class_id INTEGER,
+                    user_id INTEGER,
                     FOREIGN KEY (class_id) REFERENCES Class(id)
+                    FOREIGN KEY (user_id) REFERENCES users(id)
                    )
     '''
     )
@@ -184,11 +189,11 @@ def register():
 
         # Insert into Teacher or Student table based on role
         if role == 'teacher':
-            cursor.execute("INSERT INTO Teacher (user_id, name) VALUES (?, ?)", (user_id, name))
+            cursor.execute("INSERT INTO Teacher (user_id, name,email,password) VALUES (?, ?, ?, ?)", (user_id, name,email,password))
         elif role == 'student':
             roll_number = request.form['roll_number']
             class_id = request.form['class_id']
-            cursor.execute("INSERT INTO Student (id, name, roll_number, class_id) VALUES (?, ?, ?, ?)", (user_id, name, roll_number, class_id))
+            cursor.execute("INSERT INTO Student (user_id, name, roll_number, class_id,email,password) VALUES (?, ?, ?, ?, ?, ?)", (user_id, name, roll_number, class_id, email, password))
         
         conn.commit()
         conn.close()
@@ -208,6 +213,7 @@ def login():
         cursor = conn.cursor()
         cursor.execute("SELECT id, email, password, role FROM users WHERE email = ?", (email,))
         user = cursor.fetchone()
+
         conn.close()
         
             # user[0]=id	user[1]=email	user[2]=password	user[3]=role
@@ -221,9 +227,9 @@ def login():
             if session['role'] == 'admin':
                 return redirect(url_for('admin_dashboard'))
             elif session['role'] == 'teacher':
-                return redirect(url_for('teacher_dashboard'))
+                return redirect(url_for('teacher_dashboard',teacher_id = user[0]))
             elif session['role'] == 'student':
-                return redirect(url_for('student_dashboard'))
+                return redirect(url_for('student_dashboard',student_id = user[0]))
         else:
             return "Invalid credentials. Please try again."
     
@@ -236,15 +242,15 @@ def login():
 def admin_dashboard():
     return render_template('admin_dashboard.html')
 
-@app.route('/teacher_dashboard')
+@app.route('/teacher_dashboard/<int:teacher_id>')
 @teacher_required
-def teacher_dashboard():
-    return render_template('teacher_dashboard.html')
+def teacher_dashboard(teacher_id):
+    return render_template('teacher_dashboard.html', tecaher_id = teacher_id)
 
-@app.route('/student_dashboard')
+@app.route('/student_dashboard/<int:student_id>')
 @student_required
-def student_dashboard():
-    return render_template('student_dashboard.html')
+def student_dashboard(student_id):
+    return render_template('student_dashboard.html', student_id = student_id)
 
 # ---------------------------------------------------------------------------------------------------------------------
 # --------------------------------------------------school oprations---------------------------------------------------
@@ -420,7 +426,7 @@ def edit_class(class_id):
     cursor = conn.cursor()
 
     if request.method == 'POST':
-        new_name = request.form['new_name']
+        new_name = request.form['name']
         new_department_id = request.form['department_id']
         cursor.execute("UPDATE Class SET name = ?, department_id = ? WHERE id = ?", (new_name, new_department_id, class_id))
         conn.commit()
@@ -464,7 +470,18 @@ def add_students_from_excel(filepath):
         email = row['Email']
         password = bcrypt.generate_password_hash(str(row['Password'])).decode('utf-8')  # Hash password
         roll_number = row['Roll Number']  # New field
-        class_id = row['Class ID']
+        class_name = row['Class Name']
+        department_name = row['Department Name']
+        # class_id = row['Class ID']
+
+        # Find class_id from Class table by Class Name
+        cursor.execute("SELECT id FROM Department WHERE name = ?", (department_name,))
+        department_id = cursor.fetchone()[0]
+        # print(department_id)
+        # print(class_name)
+        cursor.execute("SELECT id FROM Class WHERE name = ? and department_id = ?", (class_name, department_id))
+        class_id = cursor.fetchone()[0]
+        print(class_id)
 
         # Insert into users table
         cursor.execute("INSERT INTO users (email, password, role) VALUES (?, ?, 'student')", 
@@ -472,8 +489,8 @@ def add_students_from_excel(filepath):
         user_id = cursor.lastrowid  # Get newly created user ID
 
         # Insert into Student table
-        cursor.execute("INSERT INTO Student (user_id, name, roll_number, class_id) VALUES (?, ?, ?, ?)", 
-                       (user_id, name, roll_number, class_id))
+        cursor.execute("INSERT INTO Student (user_id, name, roll_number, class_id, email, password) VALUES (?, ?, ?, ?, ?, ?)", 
+                       (user_id, name, roll_number, class_id, email, password))
 
     conn.commit()
     conn.close()
@@ -513,14 +530,55 @@ def upload_students():
 def manage_students():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''
-        SELECT Student.id, Student.name, users.email, Class.name FROM Student
-        JOIN users ON Student.id = users.id
-        JOIN Class ON Student.class_id = Class.id
-        WHERE users.role = 'student'
-    ''')
+
+    cursor.execute("SELECT * FROM School")
+    schools = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM Department")
+    departments = cursor.fetchall()
+
+    cursor.execute("SELECT  * FROM Class")
+    classes = cursor.fetchall()
+
+    # Build the query for filtering students
+    query = "SELECT Student.id, Student.name, Student.email, Class.name FROM Student JOIN Class ON Student.class_id = Class.id JOIN Department ON Class.department_id = Department.id"
+    filters = []
+    params = []
+
+    school_id = request.args.get('school_id')
+    if school_id:
+        filters.append("Department.school_id = ?")
+        params.append(school_id)
+
+    department_id = request.args.get('department_id')
+    if department_id:
+        filters.append("Class.department_id = ?")
+        params.append(department_id)
+
+    class_id = request.args.get('class_id')
+    if class_id:
+        filters.append("Student.class_id = ?")
+        params.append(class_id)
+
+    if filters:
+        query += " WHERE " + " AND ".join(filters)
+
+    cursor.execute(query, params)
     students = cursor.fetchall()
     conn.close()
+
+    return render_template('manage_students.html', students=students, schools=schools, departments=departments, classes=classes)
+
+
+    # cursor.execute('''
+    #     SELECT Student.id, Student.name, users.email, Class.name FROM Student
+    #     JOIN users ON Student.id = users.id
+    #     JOIN Class ON Student.class_id = Class.id
+    #     WHERE users.role = 'student'
+    # ''')
+    # students = cursor.fetchall()
+    # conn.close()
+    # return render_template('manage_students.html',students = students )
 
 @app.route('/edit_student/<int:student_id>', methods=['GET', 'POST'])
 @teacher_or_admin_required
@@ -548,6 +606,18 @@ def edit_student(student_id):
     conn.close()
 
     return render_template('edit_student.html', student=student, classes=classes)
+
+@app.route('/delete_student/<int:student_id>', methods=['GET', 'POST'])
+@admin_required
+def delete_student(student_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM student WHERE user_id = ?", (student_id,))
+    cursor.execute("DELETE FROM users WHERE id = ?", (student_id,))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('manage_students'))
 # --------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------teacher---------------------------------------------------------
 @app.route('/add_teacher', methods=['GET', 'POST'])
@@ -556,6 +626,7 @@ def add_teacher():
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
+        subject = request.form['subject']
         password = bcrypt.generate_password_hash(request.form['password']).decode('utf-8')
 
         conn = sqlite3.connect(DB_PATH)
@@ -566,7 +637,7 @@ def add_teacher():
         user_id = cursor.lastrowid  # Get newly created user ID
 
         # Insert into Teacher table
-        cursor.execute("INSERT INTO Teacher (user_id, name) VALUES (?, ?)", (user_id, name))
+        cursor.execute("INSERT INTO Teacher (user_id, name, email, subject, password) VALUES (?, ?, ?, ?, ?)", (user_id, name, email, subject, password))
 
         conn.commit()
         conn.close()
@@ -599,6 +670,7 @@ def edit_teacher(teacher_id):
     if request.method == 'POST':
         new_name = request.form['name']
         new_email = request.form['email']
+        new_subject = request.form['subject']
         cursor.execute("UPDATE users SET email = ? WHERE id = ?", (new_email, teacher_id))
         cursor.execute("UPDATE Teacher SET name = ? WHERE user_id = ?", (new_name, teacher_id))
         conn.commit()
@@ -606,7 +678,7 @@ def edit_teacher(teacher_id):
 
         return redirect(url_for('manage_teachers'))
 
-    cursor.execute("SELECT users.id, Teacher.name, users.email FROM users JOIN Teacher ON users.id = Teacher.user_id WHERE users.id = ?", (teacher_id,))
+    cursor.execute("SELECT users.id, Teacher.name, users.email , Teacher.subject FROM users JOIN Teacher ON users.id = Teacher.user_id WHERE users.id = ?", (teacher_id,))
     teacher = cursor.fetchone()
     conn.close()
 
@@ -625,90 +697,134 @@ def delete_teacher(teacher_id):
     return redirect(url_for('manage_teachers'))
 # --------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------attendance------------------------------------------------------
-@app.route('/mark_attendance',methods =['GET','POST'])
+@app.route('/mark_attendance', methods=['GET', 'POST'])
 @teacher_required
 def mark_attendance():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    if request.method =='POST':
+    teacher_id = session['user_id']
+
+    if request.method == 'POST':
         class_id = request.form['class_id']
         date = request.form['date']
+
+        # Get the list of student IDs in the selected class
+        cursor.execute("SELECT id FROM Student WHERE class_id = ?", (class_id,))
+        student_ids = [row[0] for row in cursor.fetchall()]
+
+        # Iterate over all student IDs and check if they are present or absent
+        for student_id in student_ids:
+            status = 'Present' if str(student_id) in request.form else 'Absent'
+            cursor.execute("INSERT INTO Attendance (student_id, date, status) VALUES (?, ?, ?)", 
+                           (student_id, date, status))
         
-        for student_id , status in requets.form.item():
-            if student_id.is_digit():
-                cursor.execute("INSERT INTO Attendance (student_id, date, status) VALUES (?, ?, ?)", 
-                               (student_id, date, status))
-            
         conn.commit()
         conn.close()
-        return redirect(url_for('teacher_dashboard'))
+        return redirect(url_for('teacher_dashboard', teacher_id = teacher_id))
     
-    cursor.execute("SELECT id, name FROM Class")
+    cursor.execute('''SELECT Class.id, Class.name 
+    FROM Class 
+    JOIN TeacherClassSubject ON Class.id = TeacherClassSubject.class_id 
+    WHERE TeacherClassSubject.teacher_id = ?
+    ''', (teacher_id,))
+    print(teacher_id)
     classes = cursor.fetchall()
+    print(classes)
+
+    selected_class_id = request.args.get('class_id')
+    selected_date = request.args.get('date')
+    students = []
+    if selected_class_id:
+        cursor.execute("SELECT id, name, roll_number FROM Student WHERE class_id = ?", (selected_class_id,))
+        students = cursor.fetchall()
+
     conn.close()
 
-    return render_template('/mark_attendance.html',classes = classes)
+    return render_template('mark_attendance.html', classes=classes, students=students, selected_class_id=selected_class_id, selected_date=selected_date)
 
-@app.route('/view_attendance',methods=['GET', 'POST'])
+@app.route('/view_attendance', methods=['GET', 'POST'])
 @login_required
 def view_attendance():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+
+    teacher_id = session['user_id']
 
     if current_user.role == 'teacher':
         if request.method == 'POST':
             class_id = request.form['class_id']
             date = request.form['date']
             cursor.execute('''
-            SELECT Student.name,Attendance.status FROM Attendance JOIN Student ON Attendance.stident_id = Student.id WHERE Student.class_id = ? AND Attendance.date = ?''',(class_id,date))
+            SELECT Student.roll_number, Student.name, Attendance.status 
+            FROM Attendance 
+            JOIN Student ON Attendance.student_id = Student.id 
+            WHERE Student.class_id = ? AND Attendance.date = ?''', (class_id, date))
+
             attendance_records = cursor.fetchall()
         else:
             attendance_records = []
 
-        cursor.execute('SELECT id, name FROM Class')
+        cursor.execute('''
+        SELECT Class.id, Class.name 
+        FROM Class 
+        JOIN TeacherClassSubject ON Class.id = TeacherClassSubject.class_id 
+        WHERE TeacherClassSubject.teacher_id = ?
+        ''', (teacher_id,))
+        print(teacher_id)
         classes = cursor.fetchall()
+        print(classes)
 
         conn.close()
-        return render_template('view_attendance_teacher.html',attendance_records = attendance_records, classes = classes)
+        return render_template('view_attendance_teacher.html', attendance_records=attendance_records, classes=classes)
     elif current_user.role == 'student':
-        cursor.execute('''SELECT date,status FROM Attendance WHERE student_id = ?''',(current_user.id,))
-        attendance_records = current_user.fetchall()
+        cursor.execute('''SELECT Teacher.subject, Attendance.date, Attendance.status FROM Attendance 
+        JOIN Student ON Attendance.student_id = Student.id 
+        JOIN TeacherClassSubject ON Student.class_id = TeacherClassSubject.class_id 
+        JOIN Teacher ON TeacherClassSubject.teacher_id = Teacher.user_id WHERE Attendance.student_id = ?''', (current_user.id,))
+        attendance_records = cursor.fetchall()
 
         conn.close()
-        return render_template('view_attendance_student.html',attendance_records = attendance_records)
+        return render_template('view_attendance_student.html', attendance_records=attendance_records)
     
     return "Access Denied!!", 403
 
-@app.route('/download_attendance',methods = ['POST'])
+@app.route('/download_attendance', methods=['POST'])
 @teacher_required
 def download_attendance():
-    
     class_id = request.form['class_id']
     start_date = request.form['start_date']
     end_date = request.form['end_date']
 
-    conn =sqlite3.connect()
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''SELECT Student.name, Attendance.date, Attendance.status FROM Attendance JOIN Student ON Student.class_id = ? AND Attendance.date BETWEEN ? AND ? ORDER BY Attendance.date''',(class_id,start_date,end_date))
+
+    teacher_id = session['user_id']
+
+    cursor.execute('''
+    SELECT Student.roll_number, Student.name, Attendance.date, Attendance.status 
+    FROM Attendance 
+    JOIN Student ON Student.id = Attendance.student_id 
+    JOIN TeacherClassSubject ON Student.class_id = TeacherClassSubject.class_id 
+    WHERE TeacherClassSubject.teacher_id = ? AND Student.class_id = ? AND Attendance.date BETWEEN ? AND ? 
+    ORDER BY Attendance.date''', (teacher_id,class_id, start_date, end_date))
     attendance_records = cursor.fetchall()
     conn.close()
 
     # Create csv file 
     output = []
-    output.append(['Student Name', 'Date', 'Status'])
+    output.append(['Roll Number', 'Student Name', 'Date', 'Status'])
 
     for record in attendance_records:
-        output.append([record[0],record[1],record[2]])
+        output.append([record[0], record[1], record[2], record[3]])
 
-    response = Response('\n'.join([','.join(row) for row in output]), mimetype= "text/csv")
-    response.headers["Content-Disposition"] = "attechment; filename=attendance_report.csv"
+    response = Response('\n'.join([','.join(map(str, row)) for row in output]), mimetype="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=attendance_report.csv"
     return response
-
 # --------------------------------------------------------------------------------------------------------------------
 # --------------------------------------------------attendance_Analysis-----------------------------------------------
 @app.route('/attendance_summary/<int:class_id>')
-@teacher_or_admin_required
+# @teacher_or_admin_required
 def attendance_summary(class_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -727,6 +843,31 @@ def attendance_summary(class_id):
     return jsonify(result)
 
 # --------------------------------------------------------------------------------------------------------------------
+@app.route('/assign_teacher', methods=['GET', 'POST'])
+@admin_required
+def assign_teacher():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    if request.method == 'POST':
+        teacher_id = request.form['teacher_id']
+        class_id = request.form['class_id']
+        cursor.execute("INSERT INTO TeacherClassSubject (teacher_id, class_id) VALUES (?, ?)", 
+                       (teacher_id, class_id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('admin_dashboard'))
+
+    cursor.execute("SELECT user_id, name FROM Teacher")
+    teachers = cursor.fetchall()
+
+    cursor.execute("SELECT id, name FROM Class")
+    classes = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('assign_teacher_to_class.html', teachers=teachers, classes=classes)
+
 @app.route('/logout')
 @login_required
 def logout():

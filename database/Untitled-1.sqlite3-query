@@ -2,4 +2,48 @@
 
 -- Use the ▷ button in the top right corner to run the entire file.
 
-INSERT INTO users (email,password,role) VALUES ('kavanmtrivedicomp@gmail.com','$2b$12$G9jZ8snHv.efykiajyPEtelXxobuywRCuPR8HUz98/6Qo3Grhb.7e','admin');
+INSERT INTO users (email,password,role) VALUES ('admin@gmail.com','$2b$12$LRkjZX2MHil5J9aOk6eChu50EuY/Tz5GaN40UYcrBqSFf9W.qG4ju','admin');
+
+INSERT INTO users (email,password,role) VALUES ('kavanmtrivedicomp@gmail.com','$2b$12$Jzy0T7lCKj9qvkBkbJcMvu1Rn50nIOm4e2luA4dUnMlswYTpnbiEK$2b$12$G9jZ8snHv.efykiajyPEtelXxobuywRCuPR8HUz98/6Qo3Grhb.7e','admin');
+
+DROP TABLE TeacherClassSubject;
+
+DELETE FROM users WHERE role = 'student';
+
+SELECT id FROM Class WHERE name = 'Division - 1' and department_id = 2 ;
+
+CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            role TEXT CHECK(role IN ('admin', 'teacher', 'student')) NOT NULL DEFAULT 'student'
+        );
+
+CREATE TABLE IF NOT EXISTS Student (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL,
+                    roll_number TEXT UNIQUE NOT NULL,
+                    class_id INTEGER,
+                    user_id INTEGER,
+                    FOREIGN KEY (class_id) REFERENCES Class(id)
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                   );
+
+
+CREATE TABLE IF NOT EXISTS Attendance (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    student_id INTEGER,
+                    date DATE NOT NULL,
+                    status TEXT CHECK(status IN ('Present', 'Absent')),
+                    FOREIGN KEY (student_id) REFERENCES Student(id)
+                   );
+
+CREATE TABLE TeacherClassSubject (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    teacher_id INTEGER,
+    class_id INTEGER,
+    FOREIGN KEY (teacher_id) REFERENCES Teacher(id),
+    FOREIGN KEY (class_id) REFERENCES Class(id)
+);

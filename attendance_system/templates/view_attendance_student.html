@@ -23,19 +23,19 @@
     <div class="form-container">
         <h2 class="form-header">View Attendance</h2>
         <form action="{{ url_for('view_attendance') }}" method="POST">
-            <div class="mb-3">
+            <!-- <div class="mb-3">
                 <label for="class_id" class="form-label">Select Class:</label>
                 <select name="class_id" class="form-control" required>
                     {% for class in classes %}
                         <option value="{{ class[0] }}">{{ class[1] }}</option>
                     {% endfor %}
                 </select>
-            </div>
+            </div> -->
 
-            <div class="mb-3">
+            <!-- <div class="mb-3">
                 <label for="date" class="form-label">Select Date:</label>
                 <input type="date" name="date" class="form-control" required>
-            </div>
+            </div> -->
 
             <button type="submit" class="btn btn-primary mt-3">View Attendance</button>
         </form>
@@ -45,7 +45,8 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Student Name</th>
+                        <th>Subject</th>
+                        <th>Date</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -54,6 +55,7 @@
                         <tr>
                             <td>{{ record[0] }}</td>
                             <td>{{ record[1] }}</td>
+                            <td>{{ record[2] }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
