@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create IA</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Create Internal Assessment</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="subject">Subject:</label>
+                <select class="form-control" name="subject" id="subject" required>
+                    {% for subject in subjects %}
+                        <option value="{{ subject[0] }}">{{ subject[0] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="class_id">Class:</label>
+                <select class="form-control" name="class_id" id="class_id" required>
+                    {% for class in classes %}
+                        <option value="{{ class[0] }}">{{ class[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="test_name">Test Name:</label>
+                <input type="text" class="form-control" name="test_name" id="test_name" value="{{ test_name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="ia_date" class="form-label">Date:</label>
+                <input type="date" id="ia_date" name="ia_date" class="form-control" value="{{ ia_date }}" required>
+            </div>
+            <div class="form-group">
+                <label for="difficulty">Difficulty:</label>
+                <select class="form-control" name="difficulty" id="difficulty" required>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" name="fetch_questions">Fetch Questions</button>
+            <br>
+            {% if questions %}
+                <h2 class="mt-4">Select Questions</h2>
+                {% for question in questions %}
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="selected_questions" value="{{ question[0] }}">
+                        <label class="form-check-label">{{ question[1] }}</label>
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-success btn-block mt-3" name="save_questions">Save Questions</button>
+            {% endif %}
+            <br>
+            <button type="submit" class="btn btn-info btn-block" name="link">Create IA</button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

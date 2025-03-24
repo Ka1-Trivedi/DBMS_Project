@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hi {{ roll }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Welcome, {{ roll }}</h1>
+        </header>
+        <main>
+            {% if questions %}
+            <form action="/give_IA/{{ test_id }}/{{ roll }}" method="POST" class="form" id="autoSubmitForm">
+                <input type="hidden" name="test_id" value="{{ test_id }}">
+                <input type="hidden" name="roll" value="{{ roll }}">
+                {% for question in questions %}
+                    <div class="question">
+                        <p><strong>{{ loop.index }}:</strong> {{ question.question }}</p>
+                        <label>
+                            <input type="radio" name="answer_{{ question.qid }}" value="A"> {{ question.option_A }}
+                        </label><br>
+                        <label>
+                            <input type="radio" name="answer_{{ question.qid }}" value="B"> {{ question.option_B }}
+                        </label><br>
+                        <label>
+                            <input type="radio" name="answer_{{ question.qid }}" value="C"> {{ question.option_C }}
+                        </label><br>
+                        <label>
+                            <input type="radio" name="answer_{{ question.qid }}" value="D"> {{ question.option_D }}
+                        </label><br>
+                    </div>
+                {% endfor %}
+                <button type="submit" name="submit" class="btn">Submit Test</button>
+            </form>
+            {% else %}
+            <p>No questions available at the moment.</p>
+            {% endif %}
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener("visibilitychange", function () {
+            if (document.hidden) {
+                // Auto-submit the test if the user switches tabs
+                alert("You have switched tabs. The test will be auto-submitted.");
+                document.getElementById("autoSubmitForm").submit();
+            }
+        });
+
+        // Enforce full-screen mode
+        document.addEventListener("DOMContentLoaded", function () {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch((err) => {
+                    console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            }
+        });
+
+        // Exit full-screen mode detection
+        document.addEventListener("fullscreenchange", function () {
+            if (!document.fullscreenElement) {
+                alert("You exited full-screen mode. The test will be auto-submitted.");
+                document.getElementById("autoSubmitForm").submit();
+            }
+        });
+    </script>
+</body>
+</html>

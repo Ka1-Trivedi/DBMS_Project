@@ -8,6 +8,8 @@ import csv
 from flask import Response
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+import uuid
+import random
 
 app = Flask(__name__)
 
@@ -245,7 +247,7 @@ def admin_dashboard():
 @app.route('/teacher_dashboard/<int:teacher_id>')
 @teacher_required
 def teacher_dashboard(teacher_id):
-    return render_template('teacher_dashboard.html', tecaher_id = teacher_id)
+    return render_template('teacher_dashboard.html', teacher_id=teacher_id)
 
 @app.route('/student_dashboard/<int:student_id>')
 @student_required
@@ -741,7 +743,7 @@ def mark_attendance():
 
     conn.close()
 
-    return render_template('mark_attendance.html', classes=classes, students=students, selected_class_id=selected_class_id, selected_date=selected_date)
+    return render_template('mark_attendance.html', classes=classes, students=students, selected_class_id=selected_class_id, selected_date=selected_date,teacher_id = teacher_id)
 
 @app.route('/view_attendance', methods=['GET', 'POST'])
 @login_required
@@ -776,7 +778,7 @@ def view_attendance():
         print(classes)
 
         conn.close()
-        return render_template('view_attendance_teacher.html', attendance_records=attendance_records, classes=classes)
+        return render_template('view_attendance_teacher.html', attendance_records=attendance_records, classes=classes,teacher_id = teacher_id)
     elif current_user.role == 'student':
         cursor.execute('''SELECT Teacher.subject, Attendance.date, Attendance.status FROM Attendance 
         JOIN Student ON Attendance.student_id = Student.id 
@@ -867,6 +869,243 @@ def assign_teacher():
     conn.close()
 
     return render_template('assign_teacher_to_class.html', teachers=teachers, classes=classes)
+
+test_id = None
+# ---------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------IA taking---------------------------------------------------------------
+@app.route("/Create_IA/<int:teacher_id>", methods=["GET", "POST"])
+@teacher_required
+def Create_IA(teacher_id):
+    global test_id
+    questions = []
+    selected_questions = []
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("Select Subject FROM Teacher WHERE user_id = ? ", (teacher_id,))
+    subjects = cursor.fetchall()
+
+    cursor.execute('''
+        SELECT Class.id, Class.name 
+        FROM Class 
+        JOIN TeacherClassSubject ON Class.id = TeacherClassSubject.class_id 
+        WHERE TeacherClassSubject.teacher_id = ?
+        ''',(teacher_id,))
+    classes = cursor.fetchall()
+
+    subject = request.form.get("subject")
+    class_id = request.form.get("class_id")
+    difficulty = request.form.get("difficulty")
+    test_name = request.form.get("test_name")
+    ia_date = request.form.get("ia_date")
+    if request.method == "POST":
+        if test_id is None:
+            test_id = str(uuid.uuid4())
+            cursor.execute("INSERT INTO tests (test_id, subject, test_name, teacher_id,class_id, ia_date) VALUES (?, ?, ?, ?, ?, ?)",
+                           (test_id, subject, test_name, teacher_id , class_id,ia_date))
+            print("test_id")
+            conn.commit()
+
+    if request.method == "POST":
+        if "fetch_questions" in request.form:
+            print(difficulty,subject)
+            cursor.execute(
+                "SELECT qid, question FROM Question_Database WHERE difficulty = ? AND subject = ?",
+                (difficulty, subject))
+            questions = cursor.fetchall()
+            print(questions)
+            
+
+        elif "save_questions" in request.form:
+            selected_questions = request.form.getlist("selected_questions")
+            for qid in selected_questions:
+                cursor.execute("SELECT ans FROM Question_Database WHERE qid = ?", (qid,))
+                answer = cursor.fetchone()
+                cursor.execute("INSERT INTO Test_Questions (test_id, qid, answer) VALUES (?, ?, ?)", (test_id, qid, answer[0]))
+            conn.commit()
+            conn.close()
+
+        elif "link" in request.form:
+            return f"IA has been created Successfully!!!👍👍<a href='{url_for('teacher_dashboard', teacher_id=session['user_id'])}'>Teacher Dashboard</a>"
+
+    return render_template("Create_IA.html", questions=questions, subjects=subjects, difficulty=difficulty, test_name=test_name, test_id=test_id, classes=classes,ia_date = ia_date,teacher_id = teacher_id)
+
+@app.route("/available_IA/<int:student_id>", methods=["GET", "POST"])
+@student_required
+def available_IA(student_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Fetch student details
+    cursor.execute("SELECT name, roll_number FROM Student WHERE user_id = ?", (student_id,))
+    student_detail = cursor.fetchone()
+    # student_detail[0] = name, student_detail[1] = roll_number
+
+    # Fetch available IA tests for the student
+    cursor.execute('''
+        SELECT Tests.test_id, Tests.test_name, Tests.subject 
+        FROM Tests 
+        JOIN Student ON Student.class_id = Tests.class_id 
+        WHERE Student.user_id = ? AND Tests.ia_date = date('now')
+    ''', (student_id,))
+    test_details = cursor.fetchall()
+    # test_details contains tuples: (test_id, test_name, subject)
+
+    conn.close()
+
+    return render_template("available_IA.html", 
+                           name=student_detail[0], 
+                           roll=student_detail[1], 
+                           test_details=test_details)
+
+s = {}
+@app.route("/give_IA/<test_id>/<roll>", methods=["GET", "POST"])
+@student_required
+def give_IA(test_id, roll):
+    global s
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT roll , test_id FROM Test_Response")
+    given = cursor.fetchall()
+    markes = cursor.execute("SELECT markes FROM Student_Result WHERE roll = ? and test_id = ?", (roll, test_id)).fetchone()
+    for record in given:
+        if roll == record[0] and test_id == record[1] or markes is not None:
+            return f"You have already submitted your IA or IA has reached its deadline!!!<a href ='{url_for('student_dashboard', student_id=session['user_id'])}'>Student_Dashboard</a>"
+
+    questions = []
+
+    if test_id not in s.keys():
+        test_questions = cursor.execute("SELECT qid FROM Test_Questions WHERE test_id = ?", (test_id,)).fetchall()
+        for qid_tuple in test_questions:
+            qid = qid_tuple[0]  # Extract the qid value from the tuple
+            question = cursor.execute(
+                "SELECT qid, question, option_A, option_B, option_C, option_D FROM Question_Database WHERE qid = ?",
+                (qid,)
+            ).fetchone()
+            if question:
+                questions.append(dict(zip(["qid", "question", "option_A", "option_B", "option_C", "option_D"], question)))
+        random.shuffle(questions)
+        s[test_id] = questions
+    else:
+        questions = s[test_id]
+
+    if request.method == "POST":
+        if "submit" in request.form:
+            for question in questions:
+                answer = request.form.get(f"answer_{question['qid']}")
+                cursor.execute(
+                    "INSERT INTO Test_Response (roll, qid, answer, test_id) VALUES (?, ?, ?, ?)",
+                    (roll, question['qid'], answer, test_id)
+                )
+            conn.commit()
+            conn.close()
+            del s[test_id]
+            return f"Test submitted successfully!🤦‍♂️🥳<a href ='{url_for('student_dashboard', student_id=session['user_id'])}'>Student_Dashboard</a>"
+
+    return render_template("give_IA.html", questions=questions, test_id=test_id, roll=roll, auto_submit_url=url_for('auto_submit_IA', test_id=test_id, roll=roll))
+
+@app.route("/auto_submit_IA/<test_id>/<roll>", methods=["POST"])
+@student_required
+def auto_submit_IA(test_id, roll):
+    global s
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    if test_id in s:
+        questions = s[test_id]
+        for question in questions:
+            answer = request.form.get(f"answer_{question['qid']}", None)  # Default to None if no answer
+            cursor.execute(
+                "INSERT INTO Test_Response (roll, qid, answer, test_id) VALUES (?, ?, ?, ?)",
+                (roll, question['qid'], answer, test_id)
+            )
+        conn.commit()
+        conn.close()
+        del s[test_id]
+        return "Test auto-submitted due to screen focus loss! <a href='{url_for('student_dashboard', student_id=session['user_id'])}'>Student Dashboard</a>"
+
+    return "Error: Test not found or already submitted."
+
+@app.route("/list_IA/<int:teacher_id>", methods = ['GET','POST'])
+@teacher_required
+def list_IA(teacher_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT test_name, class_id, ia_date ,test_id FROM Tests WHERE teacher_id = ?" , (teacher_id, ))
+    ia_list = cursor.fetchall()
+    conn.close()
+
+    return render_template("list_IA.html",test_id = test_id , teacher_id = teacher_id , ia_list = ia_list)
+
+@app.route("/download_IA_Result/<test_id>" , methods = ['GET','POST'])
+@teacher_required
+def download_IA_Result(test_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT Student_result.roll , Class.name , Student_result.markes , Student_result.total_markes FROM Student_result Join Class on Student_result.class_id = Class.id WHERE test_id = ? ",(test_id, ))
+    IA_Result = cursor.fetchall()
+
+    output = []
+    output.append(['Roll Number', 'Class Name', 'Obtained Marks', 'Total Marks'])
+
+    for record in IA_Result:
+        output.append([record[0], record[1], record[2], record[3]])
+
+    response = Response('\n'.join([','.join(map(str, row)) for row in output]), mimetype="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=IA_Result.csv"
+    return response
+
+@app.route("/close_IA/<test_id>", methods=['GET', 'POST'])
+@teacher_required
+def close_IA(test_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    # Fetch class_id as a single value
+    cursor.execute("SELECT class_id FROM Tests WHERE test_id = ?", (test_id,))
+    class_id_tuple = cursor.fetchall()
+    if class_id_tuple is None:
+        conn.close()
+        return "Error: Test not found", 404
+    for class_id in class_id_tuple: # Extract the value from the tuple
+
+        # Fetch roll numbers of students in the class
+        cursor.execute("SELECT roll_number FROM Student WHERE class_id = ?", (class_id[0],))
+        rolls = cursor.fetchall()
+
+        # Fetch roll numbers of students who have given the IA
+        cursor.execute("SELECT roll FROM Test_Response WHERE test_id = ?", (test_id,))
+        ia_given_rolls = cursor.fetchall()
+
+        for roll_tuple in rolls:
+            roll = roll_tuple[0]  # Extract the roll number from the tuple
+            markes = 0
+            total_markes = cursor.execute("SELECT count(qid) FROM Test_Questions WHERE test_id = ?", (test_id,)).fetchone()[0]
+            if roll in [r[0] for r in ia_given_rolls]:  # Compare roll numbers
+                qids = cursor.execute("SELECT qid FROM Test_Questions WHERE test_id = ?", (test_id,)).fetchall()
+                for qid_tuple in qids:
+                    qid = qid_tuple[0]  # Extract the qid value
+                    answer = cursor.execute(
+                        "SELECT answer FROM Test_Questions WHERE test_id = ? AND qid = ?", (test_id, qid)
+                    ).fetchone()
+                    response_ans = cursor.execute(
+                        "SELECT answer FROM Test_Response WHERE roll = ? AND qid = ? AND test_id = ?", (roll, qid, test_id)
+                    ).fetchone()
+                    if response_ans == answer:
+                        markes += 1
+            cursor.execute(
+                "INSERT INTO Student_Result (roll, class_id, test_id, markes, total_markes) VALUES (?, ?, ?, ?, ?)",
+                (roll, class_id[0], test_id, markes, total_markes,)
+            )
+            conn.commit()
+
+    cursor.execute("DELETE FROM Test_Response WHERE test_id = ?",(test_id,))
+    cursor.execute("DELETE FROM Test_Questions WHERE test_id = ?",(test_id,))
+    conn.commit()
+    conn.close()
+    return f"Test Closed. Result Generated successfully! 🤦‍♂️🥳 <a href='{url_for('teacher_dashboard', teacher_id=session['user_id'])}'>Teacher Dashboard</a>"
+
 
 @app.route('/logout')
 @login_required
