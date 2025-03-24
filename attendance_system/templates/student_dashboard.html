@@ -29,6 +29,7 @@
         <p>Welcome, {{ current_user.email }}! Your role is {{ current_user.role }}.</p>
         <div class="dashboard-links">
             <a href="{{ url_for('view_attendance') }}" class="btn btn-primary">View Attendance</a>
+            <a href="{{ url_for('available_IA',student_id = student_id) }}" class="btn btn-primary">Internal Assessment</a>
             <!-- <a href="{{ url_for('download_attendance') }}" class="btn btn-primary">Download Attendance Report</a> -->
         </div>
         <a href="{{ url_for('logout') }}" class="btn btn-danger mt-3">Logout</a>

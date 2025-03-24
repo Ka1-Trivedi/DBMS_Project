@@ -6,9 +6,9 @@ INSERT INTO users (email,password,role) VALUES ('admin@gmail.com','$2b$12$LRkjZX
 
 INSERT INTO users (email,password,role) VALUES ('kavanmtrivedicomp@gmail.com','$2b$12$Jzy0T7lCKj9qvkBkbJcMvu1Rn50nIOm4e2luA4dUnMlswYTpnbiEK$2b$12$G9jZ8snHv.efykiajyPEtelXxobuywRCuPR8HUz98/6Qo3Grhb.7e','admin');
 
-DROP TABLE TeacherClassSubject;
+DROP TABLE Tests;
 
-DELETE FROM users WHERE role = 'student';
+DELETE FROM Student_result;
 
 SELECT id FROM Class WHERE name = 'Division - 1' and department_id = 2 ;
 
@@ -44,6 +44,60 @@ CREATE TABLE TeacherClassSubject (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     teacher_id INTEGER,
     class_id INTEGER,
-    FOREIGN KEY (teacher_id) REFERENCES Teacher(id),
+    FOREIGN KEY (teacher_id) REFERENCES Teacher(user_id),
     FOREIGN KEY (class_id) REFERENCES Class(id)
 );
+
+CREATE TABLE Tests(
+    test_id text primary key,
+    teacher_id INTEGER,
+    class_id INTEGER, 
+    subject text not null,
+    test_name text not null,
+    ia_date date not null, 
+    FOREIGN KEY (teacher_id) REFERENCES Teacher(id),
+    FOREIGN KEY (class_id) REFERENCES Class(id));
+
+CREATE TABLE "Question_Database" (
+    qid INTEGER PRIMARY KEY AUTOINCREMENT,
+    question TEXT NOT NULL,
+    option_A TEXT NOT NULL,
+    option_B TEXT NOT NULL,
+    option_C TEXT NOT NULL,
+    option_D TEXT NOT NULL,
+    ans TEXT CHECK(ans IN ('A', 'B', 'C', 'D')) NOT NULL,
+    difficulty TEXT CHECK(difficulty IN ('Easy', 'Medium', 'Hard')) NOT NULL,
+    subject TEXT NOT NULL);
+
+CREATE TABLE Test_Questions (
+    test_qid INTEGER PRIMARY KEY AUTOINCREMENT,
+    qid TEXT NOT NULL,
+    answer TEXT,
+    test_id TEXT NOT NULL,
+    FOREIGN KEY (qid) REFERENCES Question_Database(qid),
+    FOREIGN KEY (test_id) REFERENCES Tests(test_id)
+);
+
+CREATE TABLE Test_Response (
+    id integer primary key Autoincrement,
+    roll text not null,
+    qid text not null,
+    answer text ,
+    test_id TEXT NOT NULL REFERENCES Tests(test_id),
+    UNIQUE (roll,qid,test_id),
+    foreign key (qid) references Question_Database(qid),
+    foreign key (roll) references Student(roll_number));
+
+CREATE TABLE Student_result (
+    roll TEXT NOT NULL,
+    class_id int NOT NULL,
+    test_id TEXT NOT NULL,
+    markes int,
+    total_markes int,
+    Primary key (roll, test_id),
+    FOREIGN KEY(class_id) REFERENCES Class(id),
+    FOREIGN KEY(roll) REFERENCES Student(roll_number),
+    FOREIGN KEY(test_id) REFERENCES Tests(test_id)
+);
+
+SELECT Tests.test_name, Tests.subject, Tests.ia_date FROM Tests JOIN Student ON Student.class_id = Tests.class_id WHERE Student.user_id = 13 AND Tests.ia_date = date('now');

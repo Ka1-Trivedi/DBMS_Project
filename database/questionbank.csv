@@ -1,0 +1,86 @@
+1,What does DBMS stand for?,Database Management System,Data Backup Management System,Database Manipulation Software,Data Business Management System,A,Easy,DBMS
+2,Which SQL command is used to fetch data from a database?,SELECT,FETCH,GET,RETRIEVE,A,Easy,DBMS
+3,What is the primary key in a database?,A unique identifier for records,A column that stores primary values,A key used for encryption,A key used to access files,A,Easy,DBMS
+4,Which of the following is NOT a type of database?,Hierarchical,Network,Circular,Relational,C,Medium,DBMS
+5,Which normal form eliminates partial dependency?,1NF,2NF,3NF,BCNF,B,Medium,DBMS
+6,Which SQL clause is used to filter records?,WHERE,ORDER BY,GROUP BY,FILTER,A,Easy,DBMS
+7,What is a foreign key in a relational database?,A key that uniquely identifies a record,A key that links to the primary key of another table,A key used for foreign transactions,A key stored externally,B,Easy,DBMS
+8,Which of the following is a DML command?,SELECT,INSERT,CREATE,DROP,B,Easy,DBMS
+9,What is an index in a database?,A reference to another table,A structure that speeds up searches,A collection of primary keys,A table of contents,B,Medium,DBMS
+10,Which type of JOIN returns only matching rows from both tables?,INNER JOIN,LEFT JOIN,RIGHT JOIN,FULL JOIN,A,Medium,DBMS
+11,Which SQL constraint ensures that all values in a column are unique?,PRIMARY KEY,FOREIGN KEY,UNIQUE,CHECK,C,Easy,DBMS
+12,What does ACID stand for in database transactions?,"Atomicity, Consistency, Isolation, Durability","Atomicity, Control, Integrity, Durability","Authorization, Consistency, Isolation, Dependability","Access, Consistency, Information, Durability",A,Medium,DBMS
+13,Which SQL keyword is used to sort records?,SORT BY,ORDER BY,GROUP BY,ARRANGE BY,B,Easy,DBMS
+14,Which of the following is NOT a NoSQL database?,MongoDB,Cassandra,PostgreSQL,Redis,C,Hard,DBMS
+15,What is the purpose of the GROUP BY clause?,To group identical data into summary rows,To filter records,To join two tables,To order data,A,Medium,DBMS
+16,Which command is used to remove a table from a database?,DELETE,DROP,REMOVE,CLEAR,B,Easy,DBMS
+17,What type of relationship exists between tables in a relational database?,One-to-One,One-to-Many,Many-to-Many,All of the above,D,Medium,DBMS
+18,Which SQL function returns the number of rows in a result set?,SUM(),COUNT(),TOTAL(),NUMBER(),B,Easy,DBMS
+19,What does the HAVING clause do?,Filters records after aggregation,Filters records before aggregation,Sorts data,Groups data,A,Medium,DBMS
+20,What is a view in SQL?,A stored procedure,A virtual table,A copy of a table,A method for sorting records,B,Medium,DBMS
+21,Which normal form ensures no transitive dependency?,1NF,2NF,3NF,BCNF,C,Medium,DBMS
+22,Which key uniquely identifies a row in a table?,Primary Key,Foreign Key,Composite Key,Candidate Key,A,Easy,DBMS
+23,Which statement is used to modify existing records in a table?,INSERT,MODIFY,UPDATE,CHANGE,C,Easy,DBMS
+24,Which type of database is MySQL?,NoSQL,Document-based,Relational,Graph,C,Easy,DBMS
+25,Which SQL command is used to delete records from a table?,REMOVE,DROP,DELETE,CLEAR,C,Easy,DBMS
+26,What is a stored procedure in SQL?,A temporary table,A precompiled SQL statement,A function that runs automatically,A trigger,B,Hard,DBMS
+27,What is the difference between DELETE and TRUNCATE?,"DELETE removes all rows, TRUNCATE removes specific rows","DELETE removes specific rows, TRUNCATE removes all rows",They are the same,DELETE removes table structure,B,Medium,DBMS
+28,What is a composite key?,A key with a unique value,A primary key made up of multiple columns,A foreign key,A key with constraints,B,Medium,DBMS
+29,Which indexing technique improves search performance?,B-Tree Index,Hash Index,Clustered Index,All of the above,D,Hard,DBMS
+30,Which SQL function returns the highest value in a column?,MAX(),HIGHEST(),TOP(),LARGEST(),A,Easy,DBMS
+31,What is a transaction in SQL?,A group of SQL statements executed together,A single SQL statement,A stored procedure,A backup operation,A,Easy,DBMS
+32,Which isolation level in transactions allows dirty reads?,Read Committed,Read Uncommitted,Repeatable Read,Serializable,B,Hard,DBMS
+33,Which SQL command is used to create a new table?,ADD TABLE,NEW TABLE,CREATE TABLE,MAKE TABLE,C,Easy,DBMS
+34,What does the DISTINCT keyword do in SQL?,Removes duplicate values,Sorts data,Joins two tables,Filters records,A,Easy,DBMS
+35,What is the default sorting order in ORDER BY?,Ascending,Descending,Random,None,A,Easy,DBMS
+36,What is the purpose of the CHECK constraint?,To enforce domain integrity,To create indexes,To define primary keys,To link tables,A,Medium,DBMS
+37,What is normalization?,The process of structuring a database,The process of deleting redundant data,The process of indexing data,The process of creating joins,A,Medium,DBMS
+38,Which type of SQL command is CREATE?,DML,DDL,DCL,TCL,B,Easy,DBMS
+39,Which JOIN returns all records from the left table and only matching records from the right?,INNER JOIN,LEFT JOIN,RIGHT JOIN,FULL JOIN,B,Medium,DBMS
+40,What does the SQL UNION operator do?,Merges results from two queries,Joins two tables,Deletes duplicate values,Sorts results,A,Medium,DBMS
+41,Which command is used to grant privileges to a user?,PERMIT,ALLOW,GRANT,AUTHORIZE,C,Hard,DBMS
+42,Which statement is used to revoke privileges from a user?,REMOVE,DISABLE,REVOKE,DENY,C,Hard,DBMS
+43,What does DBMS stand for?,Database Management System,Data Backup Management System,Database Manipulation Software,Data Business Management System,A,Easy,DBMS
+44,Which SQL command is used to fetch data from a database?,SELECT,FETCH,GET,RETRIEVE,A,Easy,DBMS
+45,What is the primary key in a database?,A unique identifier for records,A column that stores primary values,A key used for encryption,A key used to access files,A,Easy,DBMS
+46,Which of the following is NOT a type of database?,Hierarchical,Network,Circular,Relational,C,Medium,DBMS
+47,Which normal form eliminates partial dependency?,1NF,2NF,3NF,BCNF,B,Medium,DBMS
+48,Which SQL clause is used to filter records?,WHERE,ORDER BY,GROUP BY,FILTER,A,Easy,DBMS
+49,What is a foreign key in a relational database?,A key that uniquely identifies a record,A key that links to the primary key of another table,A key used for foreign transactions,A key stored externally,B,Easy,DBMS
+50,Which of the following is a DML command?,SELECT,INSERT,CREATE,DROP,B,Easy,DBMS
+51,What is an index in a database?,A reference to another table,A structure that speeds up searches,A collection of primary keys,A table of contents,B,Medium,DBMS
+52,Which type of JOIN returns only matching rows from both tables?,INNER JOIN,LEFT JOIN,RIGHT JOIN,FULL JOIN,A,Medium,DBMS
+53,Which SQL constraint ensures that all values in a column are unique?,PRIMARY KEY,FOREIGN KEY,UNIQUE,CHECK,C,Easy,DBMS
+54,What does ACID stand for in database transactions?,"Atomicity, Consistency, Isolation, Durability","Atomicity, Control, Integrity, Durability","Authorization, Consistency, Isolation, Dependability","Access, Consistency, Information, Durability",A,Medium,DBMS
+55,Which SQL keyword is used to sort records?,SORT BY,ORDER BY,GROUP BY,ARRANGE BY,B,Easy,DBMS
+56,Which of the following is NOT a NoSQL database?,MongoDB,Cassandra,PostgreSQL,Redis,C,Hard,DBMS
+57,What is the purpose of the GROUP BY clause?,To group identical data into summary rows,To filter records,To join two tables,To order data,A,Medium,DBMS
+58,Which command is used to remove a table from a database?,DELETE,DROP,REMOVE,CLEAR,B,Easy,DBMS
+59,What type of relationship exists between tables in a relational database?,One-to-One,One-to-Many,Many-to-Many,All of the above,D,Medium,DBMS
+60,Which SQL function returns the number of rows in a result set?,SUM(),COUNT(),TOTAL(),NUMBER(),B,Easy,DBMS
+61,What does the HAVING clause do?,Filters records after aggregation,Filters records before aggregation,Sorts data,Groups data,A,Medium,DBMS
+62,What is a view in SQL?,A stored procedure,A virtual table,A copy of a table,A method for sorting records,B,Medium,DBMS
+63,Which normal form ensures no transitive dependency?,1NF,2NF,3NF,BCNF,C,Medium,DBMS
+64,Which key uniquely identifies a row in a table?,Primary Key,Foreign Key,Composite Key,Candidate Key,A,Easy,DBMS
+65,Which statement is used to modify existing records in a table?,INSERT,MODIFY,UPDATE,CHANGE,C,Easy,DBMS
+66,Which type of database is MySQL?,NoSQL,Document-based,Relational,Graph,C,Easy,DBMS
+67,Which SQL command is used to delete records from a table?,REMOVE,DROP,DELETE,CLEAR,C,Easy,DBMS
+68,What is a stored procedure in SQL?,A temporary table,A precompiled SQL statement,A function that runs automatically,A trigger,B,Hard,DBMS
+69,What is the difference between DELETE and TRUNCATE?,"DELETE removes all rows, TRUNCATE removes specific rows","DELETE removes specific rows, TRUNCATE removes all rows",They are the same,DELETE removes table structure,B,Medium,DBMS
+70,What is a composite key?,A key with a unique value,A primary key made up of multiple columns,A foreign key,A key with constraints,B,Medium,DBMS
+71,Which indexing technique improves search performance?,B-Tree Index,Hash Index,Clustered Index,All of the above,D,Hard,DBMS
+72,Which SQL function returns the highest value in a column?,MAX(),HIGHEST(),TOP(),LARGEST(),A,Easy,DBMS
+73,What is a transaction in SQL?,A group of SQL statements executed together,A single SQL statement,A stored procedure,A backup operation,A,Easy,DBMS
+74,Which isolation level in transactions allows dirty reads?,Read Committed,Read Uncommitted,Repeatable Read,Serializable,B,Hard,DBMS
+75,Which SQL command is used to create a new table?,ADD TABLE,NEW TABLE,CREATE TABLE,MAKE TABLE,C,Easy,DBMS
+76,What does the DISTINCT keyword do in SQL?,Removes duplicate values,Sorts data,Joins two tables,Filters records,A,Easy,DBMS
+77,What is the default sorting order in ORDER BY?,Ascending,Descending,Random,None,A,Easy,DBMS
+78,What is the purpos of the CHECK constraint?,To enforce domain integrity,To create indexes,To define primary keys,To link tables,A,Medium,DBMS
+79,What is normalization?,The process of structuring a database,The process of deleting redundant data,The process of indexing data,The process of creating joins,A,Medium,DBMS
+80,Which type of SQL command is CREATE?,DML,DDL,DCL,TCL,B,Easy,DBMS
+81,Which JOIN returns all records from the left table and only matching records from the right?,INNER JOIN,LEFT JOIN,RIGHT JOIN,FULL JOIN,B,Medium,DBMS
+82,What does the SQL UNION operator do?,Merges results from two queries,Joins two tables,Deletes duplicate values,Sorts results,A,Medium,DBMS
+83,Which command is used to grant privileges to a user?,PERMIT,ALLOW,GRANT,AUTHORIZE,C,Hard,DBMS
+84,Which statement is used to revoke privileges from a user?,REMOVE,DISABLE,REVOKE,DENY,C,Hard,DBMS
+85,Do you like DAA?,Y,N,Both A and B ,None,C,Hard,DAA
+

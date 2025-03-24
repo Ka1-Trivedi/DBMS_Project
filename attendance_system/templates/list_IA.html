@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List IA</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Internal Assessments</h1>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>IA Name</th>
+                    <th>Division</th>
+                    <th>IA Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ia in ia_list %}
+                <tr>
+                    <td>{{ ia[0] }}</td> <!-- IA Name -->
+                    <td>{{ ia[1] }}</td> <!-- Division -->
+                    <td>{{ ia[2] }}</td> <!-- IA Date -->
+                    <td>
+                        <!-- Close IA Button -->
+                        <a href="{{ url_for('close_IA', test_id=ia[3]) }}" class="btn btn-danger btn-sm me-2">Close IA</a>
+                        <!-- Download Result Button -->
+                        <a href="{{ url_for('download_IA_Result', test_id=ia[3]) }}" class="btn btn-primary btn-sm">Download Result</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('teacher_dashboard', teacher_id=teacher_id) }}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
