@@ -20,7 +20,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 # database path
-DB_PATH = "database/attendance.db"
+DB_PATH = "attendance_system/database/attendance.db"
 
 # Ensure the database directory exists
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
